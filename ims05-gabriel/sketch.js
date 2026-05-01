@@ -130,7 +130,8 @@ class Point {
   }
 
   show() {
-    stroke(20, 200, 20);
+    stroke(200);
+    // stroke(20, 200, 20);
     strokeWeight(3);
     point(this.pos.x, this.pos.y);
   }
