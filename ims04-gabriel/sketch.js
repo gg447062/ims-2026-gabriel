@@ -2,28 +2,62 @@
 
 let paths = [];
 let currentPath = [];
+let imgs = [];
+let img, img1, img2, img3, img4;
 
 let cnv;
 let clearAllPathsButton;
 let clearScreenButton;
+let saveCurrentPathButton;
 let saveButton;
-let drawAll = 0;
+let nextImageButton;
+let prevImageButton;
+let drawAll = false;
+let imageIdx = 0;
+
+function preload() {
+  img = loadImage('Daniil_Kharms_in_1932.jpg');
+  img1 = loadImage('Alexander_vvedenskij.jpg');
+  img2 = loadImage('Casimir_Malevich_photo.jpg');
+  img3 = loadImage('Konstantin_Vaginov.jpg');
+  img4 = loadImage('Nikolay_Zabolotsky.jpg');
+}
 
 function setup() {
+  imgs = [img, img1, img2, img3, img4];
   cnv = createCanvas(windowWidth, windowHeight);
-  cnv.mouseReleased(pushPoints);
+  // cnv.mouseReleased(pushPoints);
+  for (let img of imgs) {
+    img.resize(height / 2, 0);
+  }
 
+  imageMode(CENTER);
   clearAllPathsButton = createButton('clearAllPaths');
   clearAllPathsButton.mousePressed(clearAllPaths);
+  clearAllPathsButton.position(0, 0);
 
-  clearScreenButton = createButton('clearScreen');
-  clearScreenButton.mousePressed(clearScreen);
+  clearScreenButton = createButton('clearCurrentPath');
+  clearScreenButton.mousePressed(clearCurrentPath);
+  clearScreenButton.position(100, 0);
 
-  saveButton = createButton('save');
+  saveScreenButton = createButton('saveCurrentPath');
+  saveScreenButton.mousePressed(pushPoints);
+  saveScreenButton.position(230, 0);
+
+  nextImageButton = createButton('nextImage');
+  nextImageButton.mousePressed(nextImage);
+  nextImageButton.position(350, 0);
+
+  prevImageButton = createButton('prevImage');
+  prevImageButton.mousePressed(prevImage);
+  prevImageButton.position(450, 0);
+
+  saveButton = createButton('saveToJson');
   saveButton.mousePressed(savePaths);
+  saveButton.position(550, 0);
 
   noFill();
-  stroke(20);
+  stroke(20, 200, 20);
   strokeWeight(2);
 }
 
@@ -36,8 +70,21 @@ function pushPoints() {
   paths.push([...currentPath]);
 }
 
+function nextImage() {
+  imageIdx = (imageIdx + 1) % imgs.length;
+}
+
+function prevImage() {
+  imageIdx -= 1;
+  if (imageIdx < 0) {
+    imageIdx = imgs.length - 1;
+  }
+}
+
 function draw() {
   background(200);
+  let img = imgs[imageIdx];
+  image(img, width / 2, height / 2);
   if (currentPath.length) {
     beginShape();
     for (let point of currentPath) {
@@ -56,8 +103,7 @@ function draw() {
   }
 }
 
-function clearScreen() {
-  background(20);
+function clearCurrentPath() {
   currentPath = [];
 }
 

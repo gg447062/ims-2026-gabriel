@@ -4,12 +4,12 @@ let pathCount;
 let maxPoints = 0;
 
 function preload() {
-  paths = loadJSON('paths.json');
+  paths = loadJSON('paths_2.json');
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  let totalFrames = 100;
+  let totalFrames = 300;
   noFill();
 
   pathCount = Object.keys(paths).length;
@@ -23,18 +23,31 @@ function setup() {
     let currentPath = paths[0];
     let index = i % currentPath.length;
     let currentPoint = currentPath[index];
-    let start = { x: random(width), y: random(height) };
-    let end = { x: currentPoint.x, y: currentPoint.y };
-    points.push(new Point(i, 0, start, end, totalFrames));
+    let home = { x: currentPoint.x, y: currentPoint.y };
+    let dest = { x: currentPoint.x, y: currentPoint.y };
+    points.push(new Point(i, 0, home, dest, totalFrames));
   }
 }
 
 function draw() {
   background(20);
-  beginShape();
-  strokeWeight(2);
+  displayPoints();
+  // displayShape();
+}
+
+function displayPoints() {
   for (let p of points) {
     p.show();
+    p.update();
+  }
+}
+
+function displayShape() {
+  beginShape();
+  stroke(20, 200, 20);
+  strokeWeight(2);
+  for (let p of points) {
+    p.showVertex();
     p.update();
   }
   endShape();
@@ -56,57 +69,73 @@ function windowResized() {
 // add an active state counter and a rest state counter
 // use delta time for the rest state
 class Point {
-  constructor(id, pathIndex, start, end, frames) {
+  constructor(id, pathIndex, home, dest, frames) {
     this.id = id;
     this.pathIndex = pathIndex;
-    this.start = start;
-    this.end = end;
-    this.pos = { ...start };
+    this.home = home;
+    this.dest = dest;
+    this.pos = { ...home };
     this.totalFrames = frames;
-    this.restTime = 200;
+    this.restTime = 1000;
     this.frameCounter = 0;
     this.restCounter = 0;
-    this.state = 1;
+    this.state = 0;
     this.percent = 0;
   }
 
   update() {
-    this.percent =
-      (this.frameCounter % (this.totalFrames + 1)) / this.totalFrames;
-    // let easedPercent = easeOutBounce(this.percent);
-    let easedPercent = easeInOutExpo(this.percent);
-
-    this.pos.x = map(easedPercent, 0.0, 1, this.start.x, this.end.x);
-    this.pos.y = map(easedPercent, 0.0, 1, this.start.y, this.end.y);
-
-    if (this.state == 1) {
-      if (this.frameCounter == this.totalFrames) {
-        this.start = { ...this.end };
-        this.state = 0;
-        this.restCounter = 0;
-      } else {
-        this.frameCounter++;
-      }
-    } else {
-      this.pos = { ...this.end };
+    if (this.state == 0) {
+      // REST STATE
+      this.pos = { ...this.dest };
+      // if rest state is over, switch to move state and reset counters
       if (this.restCounter >= this.restTime) {
         this.state = 1;
         this.frameCounter = 0;
-        this.pathIndex = (this.pathIndex + 1) % pathCount;
-        let currentPath = paths[this.pathIndex];
-        let index = this.id % currentPath.length;
-        let currentPoint = currentPath[index];
-        this.end = { x: currentPoint.x, y: currentPoint.y };
+        this.dest = { x: random(width), y: random(height) };
       } else {
         this.restCounter += deltaTime;
+      }
+    } else {
+      // MOVE STATES
+      this.percent =
+        (this.frameCounter % (this.totalFrames + 1)) / this.totalFrames;
+      // let easedPercent = easeOutBounce(this.percent);
+      let easedPercent = easeInOutExpo(this.percent);
+
+      this.pos.x = map(easedPercent, 0.0, 1, this.home.x, this.dest.x);
+      this.pos.y = map(easedPercent, 0.0, 1, this.home.y, this.dest.y);
+
+      if (this.frameCounter == this.totalFrames) {
+        this.home = { ...this.dest };
+
+        if (this.state == 1) {
+          // if the first movement phase is over, set everything for the second movement phase
+          this.state = 2;
+          this.frameCounter = 0;
+          this.pathIndex = (this.pathIndex + 1) % pathCount;
+          // get the current path and the next destination coordinates
+          let currentPath = paths[this.pathIndex];
+          let index = this.id % currentPath.length;
+          let currentPoint = currentPath[index];
+          this.dest = { x: currentPoint.x, y: currentPoint.y };
+        } else if (this.state == 2) {
+          // if the second movement phase is over, set everything for the rest phase
+          this.state = 0;
+          this.restCounter = 0;
+        }
+      } else {
+        this.frameCounter++;
       }
     }
   }
 
   show() {
-    stroke(200);
-    strokeWeight(2);
+    stroke(20, 200, 20);
+    strokeWeight(3);
     point(this.pos.x, this.pos.y);
+  }
+
+  showVertex() {
     vertex(this.pos.x, this.pos.y);
   }
 }
