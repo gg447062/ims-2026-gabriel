@@ -23,7 +23,7 @@ function setup() {
     let currentPath = paths[0];
     let index = i % currentPath.length;
     let currentPoint = currentPath[index];
-    let home = { x: currentPoint.x, y: currentPoint.y };
+    let home = { x: random(width), y: random(height) };
     let dest = { x: currentPoint.x, y: currentPoint.y };
     points.push(new Point(i, 0, home, dest, totalFrames));
   }
@@ -79,7 +79,7 @@ class Point {
     this.restTime = 1000;
     this.frameCounter = 0;
     this.restCounter = 0;
-    this.state = 0;
+    this.state = 1;
     this.percent = 0;
   }
 
@@ -132,7 +132,7 @@ class Point {
   show() {
     stroke(200);
     // stroke(20, 200, 20);
-    strokeWeight(3);
+    strokeWeight(2);
     point(this.pos.x, this.pos.y);
   }
 
